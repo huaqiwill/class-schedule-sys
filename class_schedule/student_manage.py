@@ -27,22 +27,22 @@ class StudentManage(QWidget):
 
     def __init_page(self):
         # 添加
-        self.btnAdd = PushButton("添加")
+        self.btnAdd = PushButton("添加", self)
         self.btnAdd.setMaximumWidth(150)
         self.btnAdd.clicked.connect(self.__ev_stu_add)
 
         # 删除
-        self.btnDel = PushButton("删除")
+        self.btnDel = PushButton("删除", self)
         self.btnDel.setMaximumWidth(150)
         self.btnDel.clicked.connect(self.__ev_stu_del)
 
         # 导入
-        self.btnImport = PushButton("导入")
+        self.btnImport = PushButton("导入", self)
         self.btnImport.setMaximumWidth(150)
         self.btnImport.clicked.connect(self.__ev_stu_import)
 
         # 导出
-        self.btnExport = PushButton("导出")
+        self.btnExport = PushButton("导出", self)
         self.btnExport.setMaximumWidth(150)
         self.btnExport.clicked.connect(self.__ev_stu_export)
 
@@ -81,22 +81,23 @@ class StudentManage(QWidget):
             "address",
         ]
         raw_fields = ["学生姓名", "学号", "年龄", "性别"]
-        result_list, field_names = StudentInfo.list(1, 10)
-        print(field_names, result_list)
-        data_size = len(result_list)
-        size = len(field_names)
-        self.tableView.setRowCount(data_size)
-        self.tableView.setColumnCount(size)
-        self.tableView.setHorizontalHeaderLabels(field_names)
-        for i, result in enumerate(result_list):
-            for j in range(size):
-                field = field_names[j]
-                self.tableView.setItem(i, j, QTableWidgetItem(result.get(field)))
+        result_list = StudentInfo.list(1, 10)
+        if result_list is not  None:
+            field_names = StudentInfo.fields_names()
+            print(field_names, result_list)
+            data_size = len(result_list)
+            size = len(field_names)
+            self.tableView.setRowCount(data_size)
+            self.tableView.setColumnCount(size)
+            self.tableView.setHorizontalHeaderLabels(field_names)
+            for i, result in enumerate(result_list):
+                for j in range(size):
+                    field = field_names[j]
+                    self.tableView.setItem(i, j, QTableWidgetItem(result.get(field)))
 
     def __ev_stu_add(self):
         self.add_frame = StudentAdd(self)
         self.add_frame.show()
-        
 
     def __ev_stu_del(self):
         pass
