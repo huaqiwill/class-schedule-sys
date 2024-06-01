@@ -1,4 +1,5 @@
 # This Python file uses the following encoding: utf-8
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -11,10 +12,16 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 from qfluentwidgets import TableWidget
+from qfluentwidgets.components.widgets import (
+    PushButton,
+    LineEdit,
+)
 from PySide6.QtSql import QSqlDatabase, QSqlQuery
 
 
 class ClassManage(QWidget):
+    """班级管理"""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
@@ -97,4 +104,14 @@ class ClassManage(QWidget):
         pass
 
     def stu_query(self):
+        pass
+
+
+class ClassAdd(QWidget):
+    """添加班级"""
+
+    def __init__(self):
+        self.setup_ui()
+
+    def setup_ui(self):
         pass
