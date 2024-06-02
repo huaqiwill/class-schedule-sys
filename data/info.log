@@ -1,0 +1,4 @@
+2024-32-02 19:32:18 root:ERROR:sql 执行 [select * from teacher limit 1,10] 失败, 原因 None
+2024-32-02 19:32:18 root:ERROR:sql 执行 [select * from teacher limit 1,10] 失败, 原因 None
+2024-32-02 19:32:18 root:INFO:创建数据表，如果不存在
+2024-32-02 19:32:18 root:ERROR:管理员表创建失败

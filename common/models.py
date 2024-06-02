@@ -172,7 +172,7 @@ class StudentInfo(object):
                 stu["name"],
                 stu["grade"],
                 stu["major"],
-                stu["class_name"],
+                stu["class_num"],
             ).exec()
         else:
             return DBQuery(
@@ -180,7 +180,7 @@ class StudentInfo(object):
                 stu["name"],
                 stu["grade"],
                 stu["major"],
-                stu["class_name"],
+                stu["class_num"],
                 stu["id"],
             ).exec()
 
@@ -203,7 +203,7 @@ class StudentInfo(object):
         return DBUtils2().get_table_fields("student")
 
 
-class ClassInfo(object):
+class ClassesInfo(object):
     """班级信息
     id
     name

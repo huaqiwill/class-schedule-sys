@@ -1,4 +1,0 @@
-from class_schedule.course_manage import CourseManage
-from class_schedule.student_manage import StudentManage
-from class_schedule.class_manage import ClassManage
-from class_schedule.teacher_manage import TeacherManage

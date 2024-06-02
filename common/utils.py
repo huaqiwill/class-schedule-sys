@@ -4,6 +4,25 @@ from PySide6.QtSql import QSqlDatabase, QSqlQuery
 import os
 import logging
 import sqlite3
+import csv
+from common import config
+
+def dict_list_to_csv(data, filename):
+    fieldnames = data[0].keys()
+    with open(filename, 'w', newline='', encoding="utf8") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        # 写入列名
+        writer.writeheader()
+        # 写入数据行
+        writer.writerows(data)
+
+
+def csv_to_dict_list(filename) -> list[dict]:
+    with open(filename, 'r', encoding="utf8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        # 将读取的行转换为字典并存储在列表中
+        data = [row for row in reader]
+        return data
 
 
 class DBQuery(object):
@@ -37,7 +56,7 @@ class DBQuery(object):
         result = self.db.query(self.sql, args).get_dict_list()
         if not result:
             logging.error("sql 执行 [{0}] 失败, 原因 {1}".format(self.last_sql(), self.last_error()))
-            return None
+            return []
         return result
 
 
@@ -123,7 +142,8 @@ class DBUtils(object):
 
 class DBUtils2(object):
     def __init__(self):
-        self.db_file = os.path.join(os.getcwd(), "data\\ClassSchedules.db")
+        self.db_file = config.db_file
+        # self.db_file = os.path.join(os.getcwd(), "data\\ClassSchedules.db")
         # self.db_file = r"D:\Peng\ABC\商单列表\2024\2024.05\2024.5.30_300\class-schedule-sys\data\test.db"
         self.connection = sqlite3.connect(self.db_file)
         self.connection.row_factory = sqlite3.Row
@@ -134,7 +154,7 @@ class DBUtils2(object):
         self.cursor.close()
         self.connection.close()
 
-    def exec(self, sql, args=[]):
+    def exec(self, sql: str, args=[]):
         try:
             self.cursor.execute(sql, args)
             self.connection.commit()
@@ -143,7 +163,7 @@ class DBUtils2(object):
             self.error_msg = e
             return False
 
-    def query(self, sql, args=[]):
+    def query(self, sql: str, args=[]):
         try:
             self.cursor.execute(sql, args)
         except Exception as e:
