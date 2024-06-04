@@ -4,6 +4,9 @@ import PySide6
 from PySide6.QtCore import *
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import *
+from qfluentwidgets import LineEdit, ComboBox, PushButton
+
+from common import config
 
 
 class LoginInterface(QDialog):
@@ -19,14 +22,14 @@ class LoginInterface(QDialog):
         self.username_label = QLabel()
         self.username_label.setObjectName("username_label")
 
-        self.username_edit = QLineEdit()
+        self.username_edit = LineEdit()
         self.username_edit.setObjectName("username_edit")
         self.username_edit.setPlaceholderText("请输入用户名")
 
         self.password_label = QLabel()
         self.password_label.setObjectName("password_label")
 
-        self.password_edit = QLineEdit()
+        self.password_edit = LineEdit()
         self.password_edit.setEchoMode(QLineEdit.Password)
         self.password_edit.setPlaceholderText("请输入密码")
         self.password_edit.setObjectName("password_edit")
@@ -34,14 +37,14 @@ class LoginInterface(QDialog):
         self.role_label = QLabel()
         self.role_label.setObjectName("role_label")
 
-        self.role_comboBox = QComboBox()
+        self.role_comboBox = ComboBox()
         self.role_comboBox.addItem("")
         self.role_comboBox.addItem("")
         self.role_comboBox.addItem("")
         self.role_comboBox.setObjectName("role_comboBox")
         self.role_comboBox.currentIndexChanged.connect(self.__onRoleChanged)
 
-        self.loginBtn = QPushButton(self)
+        self.loginBtn = PushButton(self)
         self.loginBtn.setObjectName("loginBtn")
         self.loginBtn.setGeometry(QRect(60, 110, 371, 28))
         self.loginBtn.clicked.connect(self.__onLogin)
@@ -70,18 +73,26 @@ class LoginInterface(QDialog):
             return QMessageBox.information(self, "提示", "请输入密码")
 
         if self.role_comboBox.currentText() == "管理员":
-            print("管理员")
+            config.role = "管理员"
             if loginForm.get("username") == "admin" and loginForm.get("password") == "admin":
                 self.close()
                 self.accept()
             else:
                 return QMessageBox.information(self, "提示", "用户名或密码错误")
         if self.role_comboBox.currentText() == "老师":
-            print("老师")
-            return QMessageBox.information(self, "提示", "用户名或密码错误")
+            config.role = "老师"
+            if loginForm.get("username") == "admin" and loginForm.get("password") == "admin":
+                self.close()
+                self.accept()
+            else:
+                return QMessageBox.information(self, "提示", "用户名或密码错误")
         if self.role_comboBox.currentText() == "学生":
-            print("学生")
-            return QMessageBox.information(self, "提示", "用户名或密码错误")
+            config.role = "学生"
+            if loginForm.get("username") == "admin" and loginForm.get("password") == "admin":
+                self.close()
+                self.accept()
+            else:
+                return QMessageBox.information(self, "提示", "用户名或密码错误")
 
     def __reTranslateUI(self):
         self.setWindowTitle(
@@ -114,15 +125,14 @@ class LoginInterface(QDialog):
             sys.exit(0)
 
     def __initLayout(self):
-        self.formLayoutWidget = QWidget(self)
-        self.formLayoutWidget.setObjectName("formLayoutWidget")
-        self.formLayoutWidget.setGeometry(QRect(10, 10, 421, 91))
-        self.formLayout = QFormLayout(self.formLayoutWidget)
+        # 表单布局
+        self.formLayout = QFormLayout(self)
         self.formLayout.setObjectName("formLayout")
-        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setContentsMargins(10, 10, 10, 10)
         self.formLayout.addRow(self.username_label, self.username_edit)
         self.formLayout.addRow(self.password_label, self.password_edit)
         self.formLayout.addRow(self.role_label, self.role_comboBox)
+        self.formLayout.addRow(None, self.loginBtn)
 
     def __initData(self):
         self.username_edit.setText("admin")

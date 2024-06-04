@@ -14,6 +14,7 @@ from interface import (
 )
 from common.models import AdminInfo, StudentInfo, TeacherInfo, CourseInfo, ClassesInfo
 import logging
+from common import config
 
 logging.basicConfig(
     filename="./data/info.log",
@@ -28,15 +29,24 @@ logging.basicConfig(
 class MainWindow(FluentWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.role = config.role
+        print("当前角色", self.role)
         self.__initWindow()
         self.__initNavigation()
         self.__initData()
 
     def __initNavigation(self):
-        self.addSubInterface(CourseManage(), QIcon("./resource/icon/课程管理.png"), "课程管理")
-        self.addSubInterface(StudentManage(), QIcon("./resource/icon/学生管理.png"), "学生管理")
-        self.addSubInterface(ClassManage(), QIcon("./resource/icon/班级管理.png"), "班级管理")
-        self.addSubInterface(TeacherManage(), QIcon("./resource/icon/教师管理.png"), "教师管理")
+        if self.role == "管理员":
+            self.addSubInterface(CourseManage(), QIcon("./resource/icon/课程管理.png"), "课程管理")
+            self.addSubInterface(StudentManage(), QIcon("./resource/icon/学生管理.png"), "学生管理")
+            self.addSubInterface(ClassManage(), QIcon("./resource/icon/班级管理.png"), "班级管理")
+            self.addSubInterface(TeacherManage(), QIcon("./resource/icon/教师管理.png"), "教师管理")
+        if self.role == "老师":
+            self.addSubInterface(CourseManage(), QIcon("./resource/icon/课程管理.png"), "课程管理")
+            self.addSubInterface(StudentManage(), QIcon("./resource/icon/学生管理.png"), "学生管理")
+            self.addSubInterface(ClassManage(), QIcon("./resource/icon/班级管理.png"), "班级管理")
+        if self.role == "学生":
+            self.addSubInterface(CourseManage(), QIcon("./resource/icon/课程管理.png"), "课表查看")
 
     def __initWindow(self):
         # enable acrylic effect

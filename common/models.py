@@ -220,10 +220,9 @@ class ClassesInfo(object):
 
     @staticmethod
     def save(cls: dict):
-        if ClassInfo.info(cls["id"]) is None:
+        if ClassesInfo.info(cls.get("id")) is None:
             return DBQuery(
-                "update classes set name = ?, teacher = ?, time = ?, place = ? where id = ?",
-                cls["id"],
+                "insert into classes(name, teacher, `time`, place) values (?,?,?,?)",
                 cls["name"],
                 cls["teacher"],
                 cls["time"],
@@ -231,12 +230,12 @@ class ClassesInfo(object):
             ).exec()
         else:
             return DBQuery(
-                "update classes set name = ?, teacher = ?, time = ?, place = ? where id = ?",
-                cls["id"],
+                "update classes set name = ?, teacher = ?, `time` = ?, place = ? where id = ?",
                 cls["name"],
                 cls["teacher"],
                 cls["time"],
                 cls["place"],
+                cls["id"],
             ).exec()
 
     @staticmethod
@@ -245,6 +244,8 @@ class ClassesInfo(object):
 
     @staticmethod
     def info(id):
+        if id is None:
+            return None
         return DBQuery("select * from classes where id = ?", id).dict()
 
     @staticmethod

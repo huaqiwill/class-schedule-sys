@@ -3,9 +3,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QTableWidgetItem,
-    QHeaderView, QDialog, QApplication, QLabel, QFormLayout,
+    QHeaderView, QDialog, QApplication, QLabel, QFormLayout, QComboBox, QSpacerItem, QSizePolicy,
 )
-from qfluentwidgets import TableWidget, LineEdit, PushButton, MessageBox
+from qfluentwidgets import TableWidget, LineEdit, PushButton, MessageBox, ComboBox
 
 from common.models import CourseInfo
 
@@ -35,8 +35,11 @@ class CourseManage(QWidget):
         self.tableView.resizeColumnsToContents()
         self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableView.itemChanged.connect(self.__onItemChanged)
+        # 组合款
+        self.comboBox = ComboBox(self)
 
     def __initData(self):
+        # 初始化表格数据
         course_list = CourseInfo.course_page(1, 10)
         self.tableView.setRowCount(len(course_list))
         self.tableView.raw = course_list
@@ -47,6 +50,10 @@ class CourseManage(QWidget):
             self.tableView.setItem(i, 3, QTableWidgetItem(course_info.get("WEEKDAY3")))
             self.tableView.setItem(i, 4, QTableWidgetItem(course_info.get("WEEKDAY4")))
             self.tableView.setItem(i, 5, QTableWidgetItem(course_info.get("WEEKDAY5")))
+        # 初始化组合框数据
+        self.comboBox.addItem("添加课程1")
+        self.comboBox.addItem("添加课程2")
+        self.comboBox.addItem("添加课程3")
 
     def __onItemChanged(self, item: QTableWidgetItem):
         row, column = item.row(), item.column()
@@ -59,8 +66,14 @@ class CourseManage(QWidget):
 
     def __initLayout(self):
         # 水平布局
-        self.hBoxLayout = QHBoxLayout(self)
-        self.hBoxLayout.addWidget(self.tableView)
+        self.hBoxLayout = QHBoxLayout()
+        self.hBoxLayout.addWidget(self.comboBox)
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hBoxLayout.addSpacerItem(spacer)
+        # 垂直布局
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.addLayout(self.hBoxLayout)
+        self.vBoxLayout.addWidget(self.tableView)
 
 
 class CourseAddOrEdit(QDialog):
