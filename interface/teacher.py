@@ -9,7 +9,7 @@ from qfluentwidgets import (
     TableWidget,
     MessageBox,
     PushButton,
-    LineEdit,
+    LineEdit, ComboBox,
 )
 from common.models import TeacherInfo
 from common.utils import csv_to_dict_list, dict_list_to_csv
@@ -69,7 +69,7 @@ class TeacherManage(QWidget):
         self.btnExport.clicked.connect(self.__onTeacherExport)
 
         # 表格
-        header_labels = ["ID（教师编号）", "老师姓名", "手机号"]
+        header_labels = ["ID（教师编号）", "老师姓名", "手机号", "职位"]
         self.tableView = TableWidget(self)
         self.tableView.setBorderVisible(True)
         self.tableView.setBorderRadius(8)
@@ -88,6 +88,7 @@ class TeacherManage(QWidget):
             self.tableView.setItem(i, 0, QTableWidgetItem(str(result.get("id"))))
             self.tableView.setItem(i, 1, QTableWidgetItem(result.get("name")))
             self.tableView.setItem(i, 2, QTableWidgetItem(result.get("phone")))
+            self.tableView.setItem(i, 3, QTableWidgetItem(result.get("position")))
 
     def __onTeacherAdd(self):
         self.add_frame = TeacherAddOrEdit(self)
@@ -168,16 +169,25 @@ class TeacherAddOrEdit(QDialog):
         self.vbox.addRow(self.name_label, self.name_edit)
         self.vbox.addRow(self.phone_label, self.phone_edit)
         self.vbox.addRow(self.password_label, self.password_edit)
+        self.vbox.addRow(self.position_label, self.position_combo)
         self.vbox.addRow(self.control_layout)
         self.setLayout(self.vbox)
 
     def __initData(self):
+        self.teacherPositions = ["普通教师", "班主任", "教导主任"]
+        for position in self.teacherPositions:
+            self.position_combo.addItem(position)
+
         if self.edit_data:
             self.name_edit.setText(self.edit_data.get("name"))
             self.phone_edit.setText(self.edit_data.get("phone"))
+            self.password_edit.setText(self.edit_data.get("password"))
+            for i, position in enumerate(self.teacherPositions):
+                if position == self.edit_data.get("position"):
+                    self.position_combo.setCurrentIndex(i)
 
     def __initWindow(self):
-        self.setWindowTitle("添加学生")
+        self.setWindowTitle("添加教师")
         self.setObjectName("TeacherAddOrEdit")
         self.resize(300, 200)  # 设置窗口的初始大小
         self.__center_screen()
@@ -196,12 +206,20 @@ class TeacherAddOrEdit(QDialog):
     def __initPage(self):
         self.name_label = QLabel("老师姓名")
         self.name_edit = LineEdit(self)
+        self.name_edit.setPlaceholderText("请输入教师姓名")
 
         self.phone_label = QLabel("手机号")
         self.phone_edit = LineEdit(self)
+        self.phone_edit.setPlaceholderText("请输入教师手机号")
 
         self.password_label = QLabel("密码")
         self.password_edit = LineEdit(self)
+        self.password_edit.setPlaceholderText("请输入教师登录密码")
+        self.password_edit.setText("123456")
+
+        self.position_label = QLabel("职位")
+        self.position_combo = ComboBox(self)
+        self.position_combo.setPlaceholderText("请选择职位")
 
         self.btnOk = PushButton("确定")
         self.btnOk.clicked.connect(self.__onOk)
@@ -217,7 +235,8 @@ class TeacherAddOrEdit(QDialog):
         teacher = {
             "name": self.name_edit.text(),
             "phone": self.phone_edit.text(),
-            "password": self.password_edit.text()
+            "password": self.password_edit.text(),
+            "position": self.position_combo.text()
         }
 
         if teacher.get("name") in (None, ""):
@@ -226,6 +245,8 @@ class TeacherAddOrEdit(QDialog):
             return MessageBox("提示", "老师手机号不能为空", self).show()
         if teacher.get("password") in (None, ""):
             return MessageBox("提示", "密码不能为空", self).show()
+        if teacher.get("position") in (None, ""):
+            return MessageBox("提示", "教师职位不能为空", self).show()
 
         if self.edit_data:
             teacher["id"] = self.edit_data.get("id")

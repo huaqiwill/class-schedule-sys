@@ -9,10 +9,12 @@ from qfluentwidgets import (
     TableWidget,
     MessageBox,
     PushButton,
-    LineEdit, FluentIcon,
+    LineEdit, FluentIcon, ComboBox,
 )
-from common.models import StudentInfo
+from common.models import StudentInfo, ClassesInfo
 from common.utils import csv_to_dict_list, dict_list_to_csv
+from pubsub import pub
+from common.config import PubEvent
 
 
 class StudentManage(QWidget):
@@ -92,8 +94,8 @@ class StudentManage(QWidget):
             self.tableView.setItem(i, 4, QTableWidgetItem(result.get("class_num")))
 
     def __onStudentAdd(self):
-        self.add_frame = StudentAddOrEdit(self)
-        result = self.add_frame.exec()
+        self.addFrame = StudentAddOrEdit(self)
+        result = self.addFrame.exec()
         print(result)
         if result:
             self.__initData()
@@ -143,8 +145,8 @@ class StudentManage(QWidget):
         selected_item = self.tableView.item(selected_row, 0)
         id = int(selected_item.text())
         edit_data = StudentInfo.info(id)
-        self.add_frame = StudentAddOrEdit(self, edit_data)
-        result = self.add_frame.exec()
+        self.addFrame = StudentAddOrEdit(self, edit_data)
+        result = self.addFrame.exec()
         print(result)
         if result:
             self.__initData()
@@ -153,18 +155,31 @@ class StudentManage(QWidget):
 class StudentAddOrEdit(QDialog):
     def __init__(self, parent=None, edit_data: dict = None):
         super().__init__(parent)
+        self.editData = edit_data
         self.__initWindow()
         self.__initPage()
         self.__initLayout()
         self.__initData()
-        self.edit_data = edit_data
+
+        pub.subscribe(self.__initClasses, PubEvent.CLASSES_UPDATED)
 
     def __initData(self):
-        if self.edit_data:
-            self.stu_name_edit.setText(self.edit_data.get("name"))
-            self.stu_gradle_edit.setText(self.edit_data.get("grade"))
-            self.stu_marjor_edit.setText(self.edit_data.get("major"))
-            self.stu_classes_edit.setText(self.edit_data.get("class_num"))
+        self.__initClasses()
+        if self.editData:
+            self.stu_name_edit.setText(self.editData.get("name"))
+            self.stu_gradle_edit.setText(self.editData.get("grade"))
+            self.stu_marjor_edit.setText(self.editData.get("major"))
+            self.password_edit.setText(self.editData.get("password"))
+            print(self.editData.get("class_num"))
+            for i, class_ in enumerate(self.classes):
+                if class_.get("name") == self.editData.get("class_num"):
+                    self.stu_classes.setCurrentIndex(i)
+                    break
+
+    def __initClasses(self):
+        self.classes = ClassesInfo.list(1, 10)
+        for class_ in self.classes:
+            self.stu_classes.addItem(class_.get("name"))
 
     def __initWindow(self):
         self.setWindowTitle("添加学生")
@@ -185,30 +200,39 @@ class StudentAddOrEdit(QDialog):
 
     def __initLayout(self):
         # 控制盒子
-        self.control_layout = QHBoxLayout()
-        self.control_layout.addWidget(self.btnOk)
-        self.control_layout.addWidget(self.btnCancel)
+        self.controlLayout = QHBoxLayout()
+        self.controlLayout.addWidget(self.btnOk)
+        self.controlLayout.addWidget(self.btnCancel)
         # 表单布局
         self.vbox = QFormLayout()
         self.vbox.addRow(self.stu_name_label, self.stu_name_edit)
         self.vbox.addRow(self.stu_gradle_label, self.stu_gradle_edit)
         self.vbox.addRow(self.stu_marjor_label, self.stu_marjor_edit)
-        self.vbox.addRow(self.stu_classes_label, self.stu_classes_edit)
-        self.vbox.addRow(self.control_layout)
+        self.vbox.addRow(self.stu_classes_label, self.stu_classes)
+        self.vbox.addRow(self.password_label, self.password_edit)
+        self.vbox.addRow(self.controlLayout)
         self.setLayout(self.vbox)
 
     def __initPage(self):
         self.stu_name_label = QLabel("学生姓名")
         self.stu_name_edit = LineEdit(self)
+        self.stu_name_edit.setPlaceholderText("请输入学生姓名")
 
         self.stu_gradle_label = QLabel("年级")
         self.stu_gradle_edit = LineEdit(self)
+        self.stu_gradle_edit.setPlaceholderText("请输入学生的年级")
 
         self.stu_marjor_label = QLabel("专业")
         self.stu_marjor_edit = LineEdit(self)
+        self.stu_marjor_edit.setPlaceholderText("请输入学生的专业信息")
+
+        self.password_label = QLabel("密码")
+        self.password_edit = LineEdit(self)
+        self.password_edit.setPlaceholderText("请输入学生的登录密码")
+        self.password_edit.setText("123456")
 
         self.stu_classes_label = QLabel("班级")
-        self.stu_classes_edit = LineEdit(self)
+        self.stu_classes = ComboBox(self)
 
         self.btnOk = PushButton("确定")
         self.btnOk.clicked.connect(self.__onOk)
@@ -224,8 +248,9 @@ class StudentAddOrEdit(QDialog):
         student = {
             "name": self.stu_name_edit.text(),
             "grade": self.stu_gradle_edit.text(),
-            "class_num": self.stu_classes_edit.text(),
+            "class_num": self.stu_classes.text(),
             "major": self.stu_marjor_edit.text(),
+            "password": self.password_edit.text()
         }
 
         if student.get("name") in (None, ""):
@@ -236,9 +261,11 @@ class StudentAddOrEdit(QDialog):
             return MessageBox("提示", "学生班级不能为空", self).show()
         if student.get("major") in (None, ""):
             return MessageBox("提示", "学生专业不能为空", self).show()
+        if student.get("password") in (None, ""):
+            return MessageBox("提示", "学生密码不能为空", self).show()
 
-        if self.edit_data:
-            student["id"] = self.edit_data.get("id")
+        if self.editData:
+            student["id"] = self.editData.get("id")
 
         print(student)
         if StudentInfo.save(student):

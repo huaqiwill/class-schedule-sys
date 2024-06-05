@@ -64,8 +64,6 @@ class MainWindow(FluentWindow):
             logging.info("学生表创建失败")
         if not TeacherInfo.create_table():
             logging.info("老师表创建失败")
-        if not CourseInfo.create_table():
-            logging.info("课程表创建失败")
         if not ClassesInfo.create_table():
             logging.info("班级表创建失败")
 

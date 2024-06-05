@@ -11,10 +11,12 @@ from qfluentwidgets import (
     TableWidget,
     MessageBox,
     PushButton,
-    LineEdit,
+    LineEdit, ComboBox,
 )
-from common.models import TeacherInfo, ClassesInfo
+from common.models import TeacherInfo, ClassesInfo, CourseInfo
 from common.utils import csv_to_dict_list, dict_list_to_csv
+from pubsub import pub
+from common.config import PubEvent
 
 
 class ClassManage(QWidget):
@@ -96,6 +98,7 @@ class ClassManage(QWidget):
         result = self.add_frame.exec()
         if result:
             self.__initData()
+            pub.sendMessage(PubEvent.CLASSES_UPDATED)
 
     def __onClassesDelete(self):
         selected_indexes = self.tableView.selectionModel().selectedIndexes()
@@ -108,6 +111,7 @@ class ClassManage(QWidget):
         print(id)
         if ClassesInfo.delete(id):
             self.__initData()
+            pub.sendMessage(PubEvent.CLASSES_UPDATED)
             MessageBox("提示", "删除成功", self).exec()
         else:
             MessageBox("提示", "删除失败", self).exec()
@@ -150,6 +154,7 @@ class ClassManage(QWidget):
         print(result)
         if result:
             self.__initData()
+            pub.sendMessage(PubEvent.CLASSES_UPDATED)
 
 
 class ClassesAddOrEdit(QDialog):
@@ -168,16 +173,19 @@ class ClassesAddOrEdit(QDialog):
 
         self.vbox = QFormLayout()
         self.vbox.addRow(self.name_label, self.name_edit)
-        self.vbox.addRow(self.teacher_label, self.teacher_edit)
+        self.vbox.addRow(self.teacher_label, self.teacher_combo)
         self.vbox.addRow(self.place_label, self.place_edit)
         self.vbox.addRow(self.control_layout)
 
         self.setLayout(self.vbox)
 
     def __initData(self):
+        self.teachers = TeacherInfo.list(1, 10)
+        for teacher in self.teachers:
+            self.teacher_combo.addItem(teacher.get("name"))
         if self.edit_data:
             self.name_edit.setText(self.edit_data.get("name"))
-            self.teacher_edit.setText(self.edit_data.get("teacher"))
+            self.teacher_combo.setCurrentText(self.edit_data.get("teacher"))
             self.place_edit.setText(self.edit_data.get("place"))
 
     def __initWindow(self):
@@ -200,12 +208,15 @@ class ClassesAddOrEdit(QDialog):
     def __initPage(self):
         self.name_label = QLabel("班级名称")
         self.name_edit = LineEdit(self)
+        self.name_edit.setPlaceholderText("请输入班级名称")
 
         self.teacher_label = QLabel("老师")
-        self.teacher_edit = LineEdit(self)
+        self.teacher_combo = ComboBox(self)
+        self.teacher_combo.setPlaceholderText("请输入老师姓名")
 
         self.place_label = QLabel("上课地点")
         self.place_edit = LineEdit(self)
+        self.place_edit.setPlaceholderText("请输入上课地点")
 
         self.btnOk = PushButton("确定")
         self.btnOk.clicked.connect(self.__onOk)
@@ -220,7 +231,7 @@ class ClassesAddOrEdit(QDialog):
     def __onOk(self):
         classes = {
             "name": self.name_edit.text(),
-            "teacher": self.teacher_edit.text(),
+            "teacher": self.teacher_combo.text(),
             "place": self.place_edit.text(),
         }
 

@@ -7,6 +7,7 @@ import sqlite3
 import csv
 from common import config
 
+
 def dict_list_to_csv(data, filename):
     fieldnames = data[0].keys()
     with open(filename, 'w', newline='', encoding="utf8") as csvfile:
@@ -42,6 +43,20 @@ class DBQuery(object):
         if not result:
             logging.error("sql执行 [{0}] 失败, 原因 {1}".format(self.last_sql(), self.last_error()))
         return result
+
+    def update(self):
+        result = self.db.exec(self.sql, list(self.args))
+        if not result:
+            logging.error("sql执行 [{0}] 失败, 原因 {1}".format(self.last_sql(), self.last_error()))
+        last_rowid = self.db.last_rowid()
+        return result, last_rowid
+
+    def insert(self):
+        result = self.db.exec(self.sql, list(self.args))
+        if not result:
+            logging.error("sql执行 [{0}] 失败, 原因 {1}".format(self.last_sql(), self.last_error()))
+        last_rowid = self.db.last_rowid()
+        return result, last_rowid
 
     def dict(self):
         result = self.db.query(self.sql, list(self.args)).get_dict()
@@ -153,6 +168,10 @@ class DBUtils2(object):
     def close(self):
         self.cursor.close()
         self.connection.close()
+
+    def last_rowid(self) -> int:
+        print("上次rowid", self.cursor.lastrowid)
+        return self.cursor.lastrowid
 
     def exec(self, sql: str, args=[]):
         try:

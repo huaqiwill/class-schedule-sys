@@ -44,24 +44,26 @@ class TeacherInfo(object):
     @staticmethod
     def create_table():
         return DBQuery(
-            "create table if not exists teacher(id integer primary key autoincrement, name text, phone text, password text)"
+            "create table if not exists teacher(id integer primary key autoincrement, name text, phone text, password text,position text)"
         ).exec()
 
     @staticmethod
     def save(teacher: dict):
         if TeacherInfo.info(teacher.get("id")) is None:
             return DBQuery(
-                "insert into teacher(name,phone,password) values(?,?,?)",
+                "insert into teacher(name,phone,password,position) values(?,?,?,?)",
                 teacher["name"],
                 teacher["phone"],
                 teacher["password"],
+                teacher["position"]
             ).exec()
         else:
             return DBQuery(
-                "update teacher set name=?,phone=?,password=? where id=?",
+                "update teacher set name=?,phone=?,password=?,position=? where id=?",
                 teacher["name"],
                 teacher["phone"],
                 teacher["password"],
+                teacher["position"],
                 teacher["id"],
             ).exec()
 
@@ -98,50 +100,46 @@ class CourseInfo(object):
     """
 
     @staticmethod
-    def create_table():
-        return DBQuery(
-            "create table if not exists course(id integer primary key autoincrement, name text, teacher text, class_num text, credits text, schedule text)"
+    def create_table(table: str):
+        DBQuery(
+            f"create table if not exists {table} (id integer primary key autoincrement ,WEEKDAY1 text,WEEKDAY2 text,WEEKDAY3 text,WEEKDAY4 text,WEEKDAY5 text)"
         ).exec()
 
     @staticmethod
-    def save(course: dict):
-        if CourseInfo.info(course.get("id")) is None:
+    def save(table: str, course: dict):
+        if CourseInfo.info(table, course.get("id")) is None:
             return DBQuery(
-                "insert into course(name,teacher,class_num,credits,schedule) values (?,?,?,?,?)",
-                course["name"],
-                course["teacher"],
-                course["class_num"],
-                course["credits"],
-                course["schedule"],
+                f"insert into {table}(WEEKDAY1,WEEKDAY2,WEEKDAY3,WEEKDAY4,WEEKDAY5) values (?,?,?,?,?)",
+                course["WEEKDAY1"],
+                course["WEEKDAY2"],
+                course["WEEKDAY3"],
+                course["WEEKDAY4"],
+                course["WEEKDAY5"]
             ).exec()
         else:
             return DBQuery(
-                "update course set name=?, teacher=?, class_num=?, credits=?, schedule=? where id=?",
-                course["name"],
-                course["teacher"],
-                course["class_num"],
-                course["credits"],
-                course["schedule"],
+                f"update {table} set WEEKDAY1=?, WEEKDAY2=?, WEEKDAY3=?, WEEKDAY4=?, WEEKDAY5=? where id=?",
+                course["WEEKDAY1"],
+                course["WEEKDAY2"],
+                course["WEEKDAY3"],
+                course["WEEKDAY4"],
+                course["WEEKDAY5"],
                 course["id"],
             ).exec()
 
     @staticmethod
-    def delete(id: int):
-        return DBQuery("delete from course where id=?", id).exec()
+    def delete(table: str, id: int):
+        return DBQuery(f"delete from {table} where id=?", id).exec()
 
     @staticmethod
-    def info(id: int):
+    def info(table: str, id: int):
         if id is None:
             return None
-        return DBQuery("select * from course where id=?", id).dict()
+        return DBQuery(f"select * from {table} where id=?", id).dict()
 
     @staticmethod
-    def list(page=1, limit=10):
-        return DBQuery("select * from course limit ?,?", page, limit).dict_list()
-
-    @staticmethod
-    def course_page(page=1, limit=10):
-        return DBQuery("SELECT * FROM C1G9 limit ?,?", page, limit).dict_list()
+    def list(table: str, page=1, limit=10):
+        return DBQuery(f"select * from {table} limit ?,?", page, limit).dict_list()
 
     @staticmethod
     def table_fields():
@@ -161,26 +159,28 @@ class StudentInfo(object):
     @staticmethod
     def create_table():
         return DBQuery(
-            "create table if not exists student(id integer primary key autoincrement, name text, grade text, major text, class_num text)"
+            "create table if not exists student(id integer primary key autoincrement, name text, grade text, major text, class_num text,password text)"
         ).exec()
 
     @staticmethod
     def save(stu: dict):
         if StudentInfo.info(stu.get("id")) is None:
             return DBQuery(
-                "insert into student( name, grade, major, class_num) values(?,?,?,?)",
+                "insert into student( name, grade, major, class_num,password) values(?,?,?,?,?)",
                 stu["name"],
                 stu["grade"],
                 stu["major"],
                 stu["class_num"],
+                stu["password"]
             ).exec()
         else:
             return DBQuery(
-                "update student set name = ?, grade = ?, major = ?, class_num = ? where id = ?",
+                "update student set name = ?, grade = ?, major = ?, class_num = ?,password=? where id = ?",
                 stu["name"],
                 stu["grade"],
                 stu["major"],
                 stu["class_num"],
+                stu["password"],
                 stu["id"],
             ).exec()
 
@@ -219,22 +219,24 @@ class ClassesInfo(object):
         ).exec()
 
     @staticmethod
-    def save(cls: dict):
+    def save(table: str, cls: dict):
         if ClassesInfo.info(cls.get("id")) is None:
             return DBQuery(
-                "insert into classes(name, teacher, `time`, place) values (?,?,?,?)",
-                cls["name"],
-                cls["teacher"],
-                cls["time"],
-                cls["place"],
+                f"insert into {table}(WEEKDAY1, WEEKDAY2, WEEKDAY3, WEEKDAY4,WEEKDAY5) values (?,?,?,?,?)",
+                cls["WEEKDAY1"],
+                cls["WEEKDAY2"],
+                cls["WEEKDAY3"],
+                cls["WEEKDAY4"],
+                cls["WEEKDAY5"],
             ).exec()
         else:
             return DBQuery(
-                "update classes set name = ?, teacher = ?, `time` = ?, place = ? where id = ?",
-                cls["name"],
-                cls["teacher"],
-                cls["time"],
-                cls["place"],
+                f"update {table} set WEEKDAY1 = ?, WEEKDAY2 = ?, WEEKDAY3 = ?, WEEKDAY4 = ?,WEEKDAY5=? where id = ?",
+                cls["WEEKDAY1"],
+                cls["WEEKDAY2"],
+                cls["WEEKDAY3"],
+                cls["WEEKDAY4"],
+                cls["WEEKDAY5"],
                 cls["id"],
             ).exec()
 
